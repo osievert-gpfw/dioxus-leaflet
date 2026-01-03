@@ -936,7 +936,7 @@ dependencies = [
 
 [[package]]
 name = "dioxus-leaflet"
-version = "0.3.1-patch1"
+version = "0.3.1-patch2"
 dependencies = [
  "color",
  "dioxus",

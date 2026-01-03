@@ -97,24 +97,16 @@ pub fn Map(
         document::Script { src: leaflet_js }
 
         // boot logic
-        document::Script { src: interop::DL_JS, type: "module" }
+        document::Script { src: interop::DL_JS, r#type: "module" }
 
         if let Some(Err(err)) = load_error() {
-            p {
-                "{err}"
-            }
-        }
-        else {
+            p { "{err}" }
+        } else {
             // Map container
-            div {
-                class: "dioxus-leaflet-container {class.as_ref().map(|c| c.as_str()).unwrap_or(\"\")}",
+            div { class: "dioxus-leaflet-container {class.as_ref().map(|c| c.as_str()).unwrap_or(\"\")}",
 
                 // Element taken over by leaflet
-                div {
-                    id: "dioxus-leaflet-{id}",
-                    class: "dioxus-leaflet-map",
-                    {children}
-                }
+                div { id: "dioxus-leaflet-{id}", class: "dioxus-leaflet-map", {children} }
             }
         }
     }
