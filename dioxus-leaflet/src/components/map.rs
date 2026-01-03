@@ -43,6 +43,15 @@ pub fn Map(
     let leaflet_css = options.leaflet_resources.css_url();
     let leaflet_js = options.leaflet_resources.js_url();
 
+    // NOTE: Leaflet requires the target element to have a real (non-zero) layout size.
+    // If we don't apply these, the DOM can initialize but the map will be invisible.
+    let height = height.unwrap_or_else(|| "500px".to_string());
+    let width = width.unwrap_or_else(|| "100%".to_string());
+    let container_style = match style {
+        Some(s) if !s.trim().is_empty() => format!("width: {}; height: {}; {}", width, height, s),
+        _ => format!("width: {}; height: {};", width, height),
+    };
+
     let id2 = id.clone();
     let load_error = use_resource(move || {
         let id = id2.clone();
@@ -103,7 +112,9 @@ pub fn Map(
             p { "{err}" }
         } else {
             // Map container
-            div { class: "dioxus-leaflet-container {class.as_ref().map(|c| c.as_str()).unwrap_or(\"\")}",
+            div {
+                class: "dioxus-leaflet-container {class.as_ref().map(|c| c.as_str()).unwrap_or(\"\")}",
+                style: "{container_style}",
 
                 // Element taken over by leaflet
                 div { id: "dioxus-leaflet-{id}", class: "dioxus-leaflet-map", {children} }
