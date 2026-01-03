@@ -2,7 +2,7 @@ use crate::{LatLng, MapOptions, MapPosition, interop, types::Id};
 use dioxus::{core::{use_drop, spawn_forever}, prelude::*};
 use std::rc::Rc;
 
-const MAP_CSS: Asset = asset!("/assets/dioxus_leaflet.scss");
+const MAP_CSS: Asset = asset!("/assets/dioxus_leaflet.css");
 
 /// Main map component using Leaflet
 #[component]
