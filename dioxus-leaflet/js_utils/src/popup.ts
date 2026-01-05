@@ -8,22 +8,35 @@ type PopupRecord = {
     options: L.PopupOptions,
 };
 
-const _popups = new Map<Id, PopupRecord>();
+const _popups_by_map = new Map<Id, Map<Id, PopupRecord>>();
 
-export function get_popup(marker_id: Id): PopupRecord | undefined {
-    return _popups.get(marker_id);
+function map_popups(map_id: Id): Map<Id, PopupRecord> {
+    let m = _popups_by_map.get(map_id);
+    if (!m) {
+        m = new Map<Id, PopupRecord>();
+        _popups_by_map.set(map_id, m);
+    }
+    return m;
 }
 
-export async function update_popup(marker_id: Id, popup_id: Id, options: L.PopupOptions) {
+export function get_popup(map_id: Id, object_id: Id): PopupRecord | undefined {
+    return _popups_by_map.get(map_id)?.get(object_id);
+}
+
+export function clear_popups(map_id: Id) {
+    _popups_by_map.delete(map_id);
+}
+
+export async function update_popup(map_id: Id, object_id: Id, popup_id: Id, options: L.PopupOptions) {
     const l = await setup();
     const id = `dioxus-leaflet-popup-${popup_id}`;
     const body = document.getElementById(id);
     if (!body) {
-        throw new Error(`Popup body element with id ${id} not found when updating popup for object ${marker_id}`);
+        throw new Error(`Popup body element with id ${id} not found when updating popup for object ${object_id}`);
     }
-    _popups.set(marker_id, { body, options });
+    map_popups(map_id).set(object_id, { body, options });
 
-    let context = get_marker(marker_id) ?? get_polygon(marker_id);
+    let context = get_marker(map_id, object_id) ?? get_polygon(map_id, object_id);
     if (context) {
         context.unbindPopup();
         context.bindPopup(body, options);

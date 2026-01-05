@@ -1,4 +1,4 @@
-use dioxus::{core::{use_drop, spawn_forever}, prelude::*};
+use dioxus::prelude::*;
 use dioxus_logger::tracing::error;
 use std::{collections::HashMap, rc::Rc};
 
@@ -31,15 +31,12 @@ pub fn Marker(
         });
     });
 
-    let id2 = id.clone();
-    use_drop(move || {
-        let id = id2.clone();
-        spawn_forever(async move {
-            if let Err(e) = interop::delete_marker(&id).await {
-                error!("Error deleting marker: {e}");
-            }
-        });
-    });
+    // Intentionally do not call into JS on marker drop.  In practice, apps may need to
+    // rebuild/remount the whole map when the marker set changes. Leaflet will clean up marker
+    // DOM/layers when the map is removed, and skipping per-marker delete avoids a flood of JS
+    // evals during teardown (which has been observed to destabilize embedded WebViews).
 
-    rsx!({ children })
+    rsx!(
+        {children}
+    )
 }

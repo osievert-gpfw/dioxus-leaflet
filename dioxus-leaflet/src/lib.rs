@@ -90,9 +90,11 @@ mod interop;
 pub use components::{
     Map, 
     Marker, 
+    MarkerSet,
     Polygon, 
     Popup,
 };
+pub use interop::MarkerSpec;
 pub use types::{
     Color, 
     LineCap,

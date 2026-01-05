@@ -3,6 +3,7 @@ use dioxus_use_js::{JsError, SerdeJsonValue};
 use std::error::Error;
 
 use crate::{LatLng, MapOptions, MapPosition, MarkerIcon, PathOptions, PopupOptions, types::Id};
+use serde::Serialize;
 
 pub const DL_JS: Asset = asset!("/assets/dioxus_leaflet.js");
 
@@ -11,9 +12,17 @@ mod js_api {
     use dioxus_use_js::use_js;
 
     use_js!("js_utils/src/map.ts", "assets/dioxus_leaflet.js"::{update_map, delete_map, on_map_click, on_map_move});
-    use_js!("js_utils/src/marker.ts", "assets/dioxus_leaflet.js"::{update_marker, delete_marker});
+    use_js!("js_utils/src/marker.ts", "assets/dioxus_leaflet.js"::{update_marker, delete_marker, set_markers, flush_pending_markers});
     use_js!("js_utils/src/polygon.ts", "assets/dioxus_leaflet.js"::{update_polygon, delete_polygon});
     use_js!("js_utils/src/popup.ts", "assets/dioxus_leaflet.js"::{update_popup});
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct MarkerSpec {
+    pub id: i64,
+    pub coordinate: LatLng,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<MarkerIcon>,
 }
 
 fn js_to_eval(err: JsError) -> Box<dyn Error + Send + Sync> {
@@ -69,6 +78,13 @@ pub async fn update_marker(
     .map_err(js_to_eval)
 }
 
+pub async fn set_markers(
+    map_id: &Id,
+    markers: &Vec<MarkerSpec>,
+) -> Result<(), Box<dyn Error + Send + Sync>> {
+    js_api::set_markers(map_id, markers).await.map_err(js_to_eval)
+}
+
 pub async fn delete_marker(marker_id: &Id) -> Result<(), Box<dyn Error + Send + Sync>> {
     js_api::delete_marker(marker_id.parent().unwrap(), marker_id.id())
         .await
@@ -101,7 +117,8 @@ pub async fn update_popup(
     options: &PopupOptions,
 ) -> Result<(), Box<dyn Error + Send + Sync>> {
     let marker_id = popup_id.parent().unwrap();
-    js_api::update_popup(marker_id, popup_id, options)
+    let map_id = marker_id.parent().unwrap();
+    js_api::update_popup(map_id, marker_id.id(), popup_id, options)
         .await
         .map_err(js_to_eval)
 }
