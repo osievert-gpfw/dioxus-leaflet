@@ -33,6 +33,20 @@ export async function update_map(map_id: Id, initial_position: MapPosition, opti
     const l = await setup();
     _deleted.delete(map_id);
 
+    // Ensure the container element exists in the DOM before creating the Leaflet map.
+    async function waitForContainer(id: string) {
+        let el = document.getElementById(id);
+        let tries = 0;
+        while (!el && tries < 50) {
+            await wait(20);
+            tries += 1;
+            el = document.getElementById(id);
+        }
+        return el;
+    }
+
+    await waitForContainer(`dioxus-leaflet-map-${map_id}`);
+
     // Initialize the map with options
     const map = _maps.get(map_id) ?? l.map(`dioxus-leaflet-map-${map_id}`, {
         zoomControl: options.zoom_control,

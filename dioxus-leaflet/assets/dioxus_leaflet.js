@@ -278,6 +278,17 @@ async function get_map(map_id) {
 async function update_map(map_id, initial_position, options) {
   const l = await setup();
   _deleted.delete(map_id);
+  async function waitForContainer(id) {
+    let el = document.getElementById(id);
+    let tries = 0;
+    while (!el && tries < 50) {
+      await wait(20);
+      tries += 1;
+      el = document.getElementById(id);
+    }
+    return el;
+  }
+  await waitForContainer(`dioxus-leaflet-map-${map_id}`);
   const map = _maps.get(map_id) ?? l.map(`dioxus-leaflet-map-${map_id}`, {
     zoomControl: options.zoom_control,
     scrollWheelZoom: options.scroll_wheel_zoom,
